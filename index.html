@@ -494,6 +494,17 @@
             <!-- 區間比較功能 -->
             <div class="compare-section">
                 <div class="section-title">📈 區間比較分析</div>
+                
+                <!-- 店別選擇 -->
+                <div style="margin-bottom: 20px;">
+                    <div class="filter-group" style="max-width: 400px;">
+                        <label>比較店別（可選）</label>
+                        <select id="compareStore">
+                            <option value="">全部店別</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div class="compare-grid">
                     <div class="compare-period">
                         <h4>基準期間</h4>
@@ -638,6 +649,13 @@
             stores.forEach(store => {
                 storeFilter.innerHTML += `<option value="${store.name}">${store.name}</option>`;
             });
+
+            // 比較店別選單（與店別篩選相同）
+            const compareStoreFilter = document.getElementById('compareStore');
+            compareStoreFilter.innerHTML = '<option value="">全部店別</option>';
+            stores.forEach(store => {
+                compareStoreFilter.innerHTML += `<option value="${store.name}">${store.name}</option>`;
+            });
         }
 
         // 套用篩選
@@ -671,6 +689,7 @@
             document.getElementById('baseEnd').value = '';
             document.getElementById('compareStart').value = '';
             document.getElementById('compareEnd').value = '';
+            document.getElementById('compareStore').value = '';
             
             filteredData = [...allData];
             displayResults();
@@ -717,55 +736,37 @@
                 </div>
             `;
 
-            // 按店別彙總
-            const storeStats = {};
-            filteredData.forEach(item => {
-                if (!storeStats[item.店別]) {
-                    storeStats[item.店別] = {
-                        name: item.店別,
-                        total: 0,
-                        count: 0,
-                        order: item.店別順序
-                    };
-                }
-                storeStats[item.店別].total += item.業績;
-                storeStats[item.店別].count++;
-            });
+            // 按業績排序（由高到低）
+            const sortedData = [...filteredData].sort((a, b) => b.業績 - a.業績);
 
-            // 轉換為陣列並排序
-            const storeArray = Object.values(storeStats).sort((a, b) => b.total - a.total);
-
-            // 顯示表格
+            // 顯示每日業績表格
             let tableHTML = `
                 <div class="table-container">
                     <div class="table-header">
-                        <h3>店別業績排名</h3>
+                        <h3>每日業績明細</h3>
                     </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>排名</th>
+                                <th>日期</th>
                                 <th>店別</th>
-                                <th class="number">總業績</th>
-                                <th class="number">筆數</th>
-                                <th class="number">平均業績</th>
+                                <th class="number">業績</th>
                                 <th class="number">占比</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
-            storeArray.forEach((store, index) => {
-                const avg = Math.round(store.total / store.count);
-                const percentage = ((store.total / totalSales) * 100).toFixed(1);
+            sortedData.forEach((item, index) => {
+                const percentage = ((item.業績 / totalSales) * 100).toFixed(2);
                 
                 tableHTML += `
                     <tr>
                         <td><strong>${index + 1}</strong></td>
-                        <td><strong>${store.name}</strong></td>
-                        <td class="number">NT$ ${store.total.toLocaleString()}</td>
-                        <td class="number">${store.count.toLocaleString()}</td>
-                        <td class="number">NT$ ${avg.toLocaleString()}</td>
+                        <td>${item.完整日期}</td>
+                        <td><strong>${item.店別}</strong></td>
+                        <td class="number">NT$ ${item.業績.toLocaleString()}</td>
                         <td class="number">${percentage}%</td>
                     </tr>
                 `;
@@ -786,6 +787,7 @@
             const baseEnd = document.getElementById('baseEnd').value;
             const compareStart = document.getElementById('compareStart').value;
             const compareEnd = document.getElementById('compareEnd').value;
+            const compareStore = document.getElementById('compareStore').value;
 
             if (!baseStart || !baseEnd || !compareStart || !compareEnd) {
                 alert('請輸入完整的比較期間');
@@ -793,14 +795,20 @@
             }
 
             // 基準期間資料
-            const baseData = allData.filter(item => 
+            let baseData = allData.filter(item => 
                 item.完整日期 >= baseStart && item.完整日期 <= baseEnd
             );
 
             // 比較期間資料
-            const compareData = allData.filter(item => 
+            let compareData = allData.filter(item => 
                 item.完整日期 >= compareStart && item.完整日期 <= compareEnd
             );
+
+            // 如果選擇了特定店別，則進一步篩選
+            if (compareStore) {
+                baseData = baseData.filter(item => item.店別 === compareStore);
+                compareData = compareData.filter(item => item.店別 === compareStore);
+            }
 
             if (baseData.length === 0 || compareData.length === 0) {
                 alert('選擇的期間沒有資料');
@@ -812,6 +820,94 @@
             const compareTotalSales = compareData.reduce((sum, item) => sum + item.業績, 0);
             const growthRate = ((compareTotalSales - baseTotalSales) / baseTotalSales * 100).toFixed(2);
 
+            // 如果選擇了特定店別，顯示該店別的每日明細
+            if (compareStore) {
+                displaySingleStoreComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, compareStore, baseTotalSales, compareTotalSales, growthRate);
+            } else {
+                // 顯示所有店別的比較
+                displayAllStoresComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, baseTotalSales, compareTotalSales, growthRate);
+            }
+        }
+
+        // 顯示單一店別的比較（每日明細）
+        function displaySingleStoreComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, storeName, baseTotalSales, compareTotalSales, growthRate) {
+            const diff = compareTotalSales - baseTotalSales;
+            const growthClass = parseFloat(growthRate) >= 0 ? 'positive' : 'negative';
+
+            // 按日期排序
+            const baseSorted = [...baseData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
+            const compareSorted = [...compareData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
+
+            let compareHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-label">店別</div>
+                        <div class="stat-value">${storeName}</div>
+                        <div class="stat-detail">單店別比較</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-label">基準期間</div>
+                        <div class="stat-value">NT$ ${baseTotalSales.toLocaleString()}</div>
+                        <div class="stat-detail">${baseStart} ~ ${baseEnd} (${baseData.length}天)</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-label">比較期間</div>
+                        <div class="stat-value">NT$ ${compareTotalSales.toLocaleString()}</div>
+                        <div class="stat-detail">${compareStart} ~ ${compareEnd} (${compareData.length}天)</div>
+                    </div>
+                    <div class="stat-card ${parseFloat(growthRate) >= 0 ? 'success' : 'warning'}">
+                        <div class="stat-label">成長率</div>
+                        <div class="stat-value ${growthClass}">${growthRate}%</div>
+                        <div class="stat-detail ${growthClass}">差額: NT$ ${diff.toLocaleString()}</div>
+                    </div>
+                </div>
+                <div class="table-container" style="margin-top: 30px;">
+                    <div class="table-header">
+                        <h3>${storeName} - 每日業績比較</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th colspan="2" style="text-align: center; background: #e0f2fe;">基準期間</th>
+                                <th colspan="2" style="text-align: center; background: #dbeafe;">比較期間</th>
+                            </tr>
+                            <tr>
+                                <th>日期</th>
+                                <th class="number">業績</th>
+                                <th>日期</th>
+                                <th class="number">業績</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            const maxLength = Math.max(baseSorted.length, compareSorted.length);
+            for (let i = 0; i < maxLength; i++) {
+                const baseItem = baseSorted[i];
+                const compareItem = compareSorted[i];
+                
+                compareHTML += `
+                    <tr>
+                        <td>${baseItem ? baseItem.完整日期 : '-'}</td>
+                        <td class="number">${baseItem ? 'NT$ ' + baseItem.業績.toLocaleString() : '-'}</td>
+                        <td>${compareItem ? compareItem.完整日期 : '-'}</td>
+                        <td class="number">${compareItem ? 'NT$ ' + compareItem.業績.toLocaleString() : '-'}</td>
+                    </tr>
+                `;
+            }
+
+            compareHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('statsContainer').innerHTML = compareHTML;
+            document.getElementById('tableContainer').innerHTML = '';
+        }
+
+        // 顯示所有店別的比較
+        function displayAllStoresComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, baseTotalSales, compareTotalSales, growthRate) {
             // 按店別比較
             const baseStoreStats = {};
             const compareStoreStats = {};
@@ -860,6 +956,11 @@
                         <div class="stat-label">成長率</div>
                         <div class="stat-value ${parseFloat(growthRate) >= 0 ? 'positive' : 'negative'}">${growthRate}%</div>
                         <div class="stat-detail">總業績變化</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-label">店別數</div>
+                        <div class="stat-value">${allStores.length}</div>
+                        <div class="stat-detail">個店別</div>
                     </div>
                 </div>
                 <div class="table-container" style="margin-top: 30px;">
