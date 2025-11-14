@@ -500,7 +500,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 進階業績查詢系統</h1>
-            <p>iStore Taiwan | 全店業績分析平台（改進版）</p>
+            <p>iStore | 全店業績分析平台</p>
         </div>
 
         <div class="filters-section">
@@ -1027,20 +1027,11 @@
                         </div>
                         <canvas id="storeRankingChart" class="chart-canvas"></canvas>
                     </div>
-
-                    <div class="chart-container">
-                        <div class="chart-title">
-                            <span>📊</span>
-                            <span>業績分布（圓餅圖）</span>
-                        </div>
-                        <canvas id="distributionChart" class="chart-canvas"></canvas>
-                    </div>
                 </div>
             `;
 
             createDailyTrendChart();
             createStoreRankingChart();
-            createDistributionChart();
         }
 
         // 每日趨勢圖
@@ -1193,63 +1184,187 @@
             });
         }
 
-        // 分布圓餅圖
-        function createDistributionChart() {
-            const ctx = document.getElementById('distributionChart');
+        // 比較趨勢圖表
+        function createComparisonTrendChart(baseData, compareData, storeName) {
+            const ctx = document.getElementById('comparisonTrendChart');
             
-            const storeData = {};
-            filteredData.forEach(record => {
-                const store = record.店別;
-                if (!storeData[store]) {
-                    storeData[store] = 0;
+            // 將資料按日期彙總（每日總和）
+            const baseDailyData = {};
+            baseData.forEach(record => {
+                const date = record.完整日期;
+                if (!baseDailyData[date]) {
+                    baseDailyData[date] = 0;
                 }
-                storeData[store] += record.業績;
+                baseDailyData[date] += record.業績;
             });
             
-            const stores = Object.keys(storeData).sort((a, b) => storeData[b] - storeData[a]);
-            const values = stores.map(store => storeData[store]);
+            const compareDailyData = {};
+            compareData.forEach(record => {
+                const date = record.完整日期;
+                if (!compareDailyData[date]) {
+                    compareDailyData[date] = 0;
+                }
+                compareDailyData[date] += record.業績;
+            });
             
-            charts.distribution = new Chart(ctx, {
-                type: 'doughnut',
+            // 排序日期
+            const baseDates = Object.keys(baseDailyData).sort();
+            const compareDates = Object.keys(compareDailyData).sort();
+            
+            // 使用較長的天數作為X軸長度
+            const maxLength = Math.max(baseDates.length, compareDates.length);
+            const dayLabels = [];
+            for (let i = 1; i <= maxLength; i++) {
+                dayLabels.push(`第${i}天`);
+            }
+            
+            // 準備資料
+            const baseValues = baseDates.map(date => baseDailyData[date]);
+            const compareValues = compareDates.map(date => compareDailyData[date]);
+            
+            // 補齊長度（較短的期間補 null）
+            while (baseValues.length < maxLength) {
+                baseValues.push(null);
+            }
+            while (compareValues.length < maxLength) {
+                compareValues.push(null);
+            }
+            
+            charts.comparisonTrend = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: stores,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: [
-                            '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e',
-                            '#f59e0b', '#eab308', '#84cc16', '#22c55e',
-                            '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
-                            '#6366f1', '#a855f7', '#d946ef', '#f472b6',
-                            '#fb923c', '#fbbf24', '#a3e635', '#4ade80'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
+                    labels: dayLabels,
+                    datasets: [
+                        {
+                            label: '基準期間',
+                            data: baseValues,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            pointBackgroundColor: baseDates.map(date => {
+                                if (isHoliday(date)) return '#dc2626';
+                                if (isWeekend(date)) return '#f87171';
+                                return '#3b82f6';
+                            }),
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            borderWidth: 3
+                        },
+                        {
+                            label: '比較期間',
+                            data: compareValues,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            pointBackgroundColor: compareDates.map(date => {
+                                if (isHoliday(date)) return '#dc2626';
+                                if (isWeekend(date)) return '#f87171';
+                                return '#10b981';
+                            }),
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            borderWidth: 3
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            display: true,
+                            position: 'top',
                             labels: {
-                                padding: 15,
                                 font: {
-                                    size: 12
-                                }
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: 20,
+                                usePointStyle: true
                             }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
                             callbacks: {
+                                title: function(context) {
+                                    const dayIndex = context[0].dataIndex;
+                                    return `第 ${dayIndex + 1} 天比較`;
+                                },
                                 label: function(context) {
-                                    const total = values.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    const dayIndex = context.dataIndex;
+                                    const isBase = context.datasetIndex === 0;
+                                    const dates = isBase ? baseDates : compareDates;
+                                    
+                                    if (dayIndex >= dates.length || context.parsed.y === null) {
+                                        return null;
+                                    }
+                                    
+                                    const date = dates[dayIndex];
+                                    const weekday = getWeekday(date);
+                                    const holiday = holidays[date];
+                                    const label = isBase ? '基準期間' : '比較期間';
+                                    
                                     return [
-                                        `${context.label}`,
-                                        `業績: ${context.parsed.toLocaleString()} 元`,
-                                        `佔比: ${percentage}%`
+                                        `${label}: ${date} (${weekday})${holiday ? ' [' + holiday + ']' : ''}`,
+                                        `業績: NT$ ${context.parsed.y.toLocaleString()}`
                                     ];
+                                },
+                                afterLabel: function(context) {
+                                    const dayIndex = context.dataIndex;
+                                    
+                                    // 計算差異（只在兩個期間都有資料時顯示）
+                                    if (baseValues[dayIndex] !== null && compareValues[dayIndex] !== null) {
+                                        const diff = compareValues[dayIndex] - baseValues[dayIndex];
+                                        const diffPercent = ((diff / baseValues[dayIndex]) * 100).toFixed(1);
+                                        const sign = diff >= 0 ? '+' : '';
+                                        return `差異: ${sign}${diff.toLocaleString()} (${sign}${diffPercent}%)`;
+                                    }
+                                    return null;
                                 }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'NT$ ' + (value / 1000000).toFixed(1) + 'M';
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            },
+                            grid: {
+                                display: false
                             }
                         }
                     }
@@ -1330,9 +1445,30 @@
                         <div class="stat-detail ${growthClass}">差額: NT$ ${diff.toLocaleString()}</div>
                     </div>
                 </div>
+            `;
+
+            document.getElementById('statsContainer').innerHTML = compareHTML;
+            
+            // 新增比較趨勢圖表
+            document.getElementById('chartsContainer').innerHTML = `
+                <div class="charts-section fade-in" style="margin-top: 30px;">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <span>📈</span>
+                            <span>${storeName} - 每日業績趨勢比較</span>
+                        </div>
+                        <canvas id="comparisonTrendChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            createComparisonTrendChart(baseSorted, compareSorted, storeName);
+            
+            // 表格部分
+            let tableHTML = `
                 <div class="table-container fade-in" style="margin-top: 30px;">
                     <div class="table-header">
-                        <h3>${storeName} - 每日業績比較</h3>
+                        <h3>${storeName} - 每日業績明細比較</h3>
                     </div>
                     <table>
                         <thead>
@@ -1363,7 +1499,7 @@
                 const baseClass = baseItem && (isHoliday(baseItem.完整日期) || isWeekend(baseItem.完整日期)) ? 'weekend' : '';
                 const compareClass = compareItem && (isHoliday(compareItem.完整日期) || isWeekend(compareItem.完整日期)) ? 'weekend' : '';
                 
-                compareHTML += `
+                tableHTML += `
                     <tr>
                         <td class="date-cell ${baseClass}">${baseItem ? baseItem.完整日期 : '-'}</td>
                         <td class="date-cell ${baseClass}">${baseWeekday}</td>
@@ -1375,15 +1511,13 @@
                 `;
             }
 
-            compareHTML += `
+            tableHTML += `
                         </tbody>
                     </table>
                 </div>
             `;
 
-            document.getElementById('statsContainer').innerHTML = compareHTML;
-            document.getElementById('chartsContainer').innerHTML = '';
-            document.getElementById('tableContainer').innerHTML = '';
+            document.getElementById('tableContainer').innerHTML = tableHTML;
         }
 
         // 顯示所有店別比較
@@ -1479,7 +1613,25 @@
             `;
 
             document.getElementById('statsContainer').innerHTML = compareHTML;
-            document.getElementById('chartsContainer').innerHTML = '';
+            
+            // 新增比較趨勢圖表（彙總所有店別）
+            const baseSorted = [...baseData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
+            const compareSorted = [...compareData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
+            
+            document.getElementById('chartsContainer').innerHTML = `
+                <div class="charts-section fade-in" style="margin-top: 30px;">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <span>📈</span>
+                            <span>全店每日總業績趨勢比較</span>
+                        </div>
+                        <canvas id="comparisonTrendChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            createComparisonTrendChart(baseSorted, compareSorted, '全店');
+            
             document.getElementById('tableContainer').innerHTML = '';
         }
 
