@@ -376,66 +376,6 @@
             color: #94a3b8;
             font-size: 16px;
         }
-
-        .json-input-section {
-            background: #f0f9ff;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            border: 2px solid #bae6fd;
-        }
-
-        .json-input-section h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #0c4a6e;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .json-input-section input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #7dd3fc;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-            color: #0c4a6e;
-            font-family: 'Courier New', monospace;
-        }
-
-        .json-input-section input:focus {
-            outline: none;
-            border-color: #0284c7;
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1);
-        }
-
-        .json-status {
-            margin-top: 10px;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .json-status.success {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #86efac;
-        }
-
-        .json-status.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        .json-status.info {
-            background: #dbeafe;
-            color: #1e3a8a;
-            border: 1px solid #93c5fd;
-        }
     </style>
 </head>
 <body>
@@ -446,18 +386,6 @@
         </div>
 
         <div class="filters-section">
-            <!-- JSON 資料來源設定 -->
-            <div class="json-input-section">
-                <h3>📂 資料來源設定</h3>
-                <input 
-                    type="text" 
-                    id="jsonUrl" 
-                    placeholder="輸入 JSON 檔案網址或 GitHub Raw URL..."
-                    value=""
-                >
-                <div id="jsonStatus" class="json-status" style="display: none;"></div>
-            </div>
-
             <div class="section-title">🔍 篩選條件</div>
             
             <div class="filters-grid">
@@ -526,7 +454,7 @@
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="applyFilters()">套用篩選</button>
                 <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
-                <button class="btn btn-primary" onclick="compareIntervals()">執行比較</button>
+                <button class="btn btn-primary" onclick="compareIntervals()">區間對比</button>
             </div>
         </div>
 
@@ -564,13 +492,10 @@
         let allData = [];
         let filteredData = [];
 
-        // 載入JSON資料
-        async function loadJSON(url) {
-            const statusDiv = document.getElementById('jsonStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'json-status info';
-            statusDiv.textContent = '⏳ 正在載入資料...';
-
+        // 自動載入JSON資料
+        async function loadJSON() {
+            const url = 'data/salesData.json';
+            
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -590,31 +515,16 @@
 
                 filteredData = [...allData];
                 
-                statusDiv.className = 'json-status success';
-                statusDiv.textContent = `✅ 成功載入 ${allData.length.toLocaleString()} 筆資料`;
+                console.log(`✅ 成功載入 ${allData.length.toLocaleString()} 筆資料`);
                 
                 initializeFilters();
                 applyFilters();
                 
-                // 3秒後隱藏狀態訊息
-                setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 3000);
-                
             } catch (error) {
-                statusDiv.className = 'json-status error';
-                statusDiv.textContent = `❌ 載入失敗: ${error.message}`;
+                alert(`❌ 載入資料失敗: ${error.message}\n\n請確認 data/salesData.json 檔案存在`);
                 console.error('載入JSON失敗:', error);
             }
         }
-
-        // JSON URL 輸入框變更事件
-        document.getElementById('jsonUrl').addEventListener('change', function(e) {
-            const url = e.target.value.trim();
-            if (url) {
-                loadJSON(url);
-            }
-        });
 
         // 初始化篩選器選項
         function initializeFilters() {
@@ -736,8 +646,8 @@
                 </div>
             `;
 
-            // 按業績排序（由高到低）
-            const sortedData = [...filteredData].sort((a, b) => b.業績 - a.業績);
+            // 按日期排序（由舊到新）
+            const sortedData = [...filteredData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
 
             // 顯示每日業績表格
             let tableHTML = `
@@ -748,7 +658,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>排名</th>
                                 <th>日期</th>
                                 <th>店別</th>
                                 <th class="number">業績</th>
@@ -758,12 +667,11 @@
                         <tbody>
             `;
 
-            sortedData.forEach((item, index) => {
+            sortedData.forEach((item) => {
                 const percentage = ((item.業績 / totalSales) * 100).toFixed(2);
                 
                 tableHTML += `
                     <tr>
-                        <td><strong>${index + 1}</strong></td>
                         <td>${item.完整日期}</td>
                         <td><strong>${item.店別}</strong></td>
                         <td class="number">NT$ ${item.業績.toLocaleString()}</td>
@@ -772,8 +680,16 @@
                 `;
             });
 
+            // 新增總計行
             tableHTML += `
                         </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; font-weight: 700; border-top: 3px solid #0f3460;">
+                                <td colspan="2" style="text-align: right; padding-right: 20px;">總計</td>
+                                <td class="number" style="color: #0f3460; font-size: 16px;">NT$ ${totalSales.toLocaleString()}</td>
+                                <td class="number" style="color: #0f3460;">100.00%</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             `;
@@ -1005,12 +921,9 @@
             document.getElementById('tableContainer').innerHTML = '';
         }
 
-        // 初始化提示
+        // 頁面載入時自動載入資料
         window.onload = function() {
-            const statusDiv = document.getElementById('jsonStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'json-status info';
-            statusDiv.textContent = '💡 請在上方輸入 JSON 檔案網址以載入業績資料';
+            loadJSON();
         };
     </script>
 </body>
