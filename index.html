@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>進階業績查詢系統 - iStore Taiwan</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -30,34 +31,34 @@
         .header {
             background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
             color: white;
-            padding: 50px 30px;
+            padding: 40px 30px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 42px;
-            margin-bottom: 15px;
+            font-size: 38px;
+            margin-bottom: 10px;
             font-weight: 700;
             letter-spacing: 1px;
         }
 
         .header p {
             opacity: 0.95;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 400;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
         }
 
         .filters-section {
-            padding: 40px 35px;
-            background: #f5f7fa;
+            padding: 35px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         }
 
         .section-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: #0f3460;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -67,31 +68,32 @@
 
         .filters-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
         }
 
         .filter-group {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(15, 52, 96, 0.08);
-            border: 1px solid #e8ecf1;
+            box-shadow: 0 2px 12px rgba(15, 52, 96, 0.08);
+            border: 2px solid #e8ecf1;
             transition: all 0.3s;
         }
 
         .filter-group:hover {
             box-shadow: 0 4px 20px rgba(15, 52, 96, 0.15);
             transform: translateY(-2px);
+            border-color: #0ea5e9;
         }
 
         .filter-group label {
             display: block;
             font-weight: 700;
             color: #16213e;
-            margin-bottom: 12px;
-            font-size: 13px;
+            margin-bottom: 10px;
+            font-size: 12px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
@@ -99,10 +101,10 @@
         .filter-group select,
         .filter-group input {
             width: 100%;
-            padding: 13px 15px;
+            padding: 12px 14px;
             border: 2px solid #e0e6ed;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-family: inherit;
             transition: all 0.3s;
             background: #fafbfc;
@@ -121,14 +123,44 @@
         .date-range-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
+        }
+
+        .date-input-wrapper {
+            position: relative;
+        }
+
+        .date-display {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            text-align: center;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .date-display.weekend {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .date-display.holiday {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #dc2626;
+            font-weight: 700;
         }
 
         .compare-section {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             border: 2px solid #06b6d4;
             box-shadow: 0 2px 15px rgba(6, 182, 212, 0.1);
         }
@@ -136,22 +168,22 @@
         .compare-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-top: 20px;
+            gap: 20px;
+            margin-top: 15px;
         }
 
         .compare-period {
             background: #f0fdfa;
-            padding: 22px;
+            padding: 20px;
             border-radius: 10px;
             border: 2px solid #5eead4;
         }
 
         .compare-period h4 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #0f766e;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -159,14 +191,14 @@
         .compare-inputs {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
 
         .compare-inputs input {
-            padding: 12px 14px;
+            padding: 11px 12px;
             border: 2px solid #99f6e4;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             background: white;
             color: #2c3e50;
             font-weight: 500;
@@ -180,19 +212,23 @@
 
         .action-buttons {
             display: flex;
-            gap: 15px;
-            justify-content: flex-end;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 15px 35px;
+            padding: 13px 30px;
             border: none;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 15px;
+            font-size: 14px;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-primary {
@@ -209,36 +245,36 @@
         .btn-secondary {
             background: white;
             color: #0f3460;
-            border: 2px solid #0f3460;
+            border: 2px solid #cbd5e1;
         }
 
         .btn-secondary:hover {
-            background: #0f3460;
-            color: white;
+            background: #f8fafc;
+            border-color: #0f3460;
         }
 
         .results-section {
-            padding: 40px 35px;
+            padding: 35px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .stat-card {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             border-left: 5px solid;
             transition: all 0.3s;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
@@ -259,42 +295,71 @@
         }
 
         .stat-label {
-            font-size: 14px;
+            font-size: 13px;
             color: #64748b;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .stat-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #1e293b;
             margin-bottom: 8px;
         }
 
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
         .stat-detail {
-            font-size: 13px;
+            font-size: 12px;
             color: #94a3b8;
             font-weight: 500;
         }
 
+        /* 圖表區域 */
+        .charts-section {
+            margin: 30px 0;
+        }
+
+        .chart-container {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .chart-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f3460;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-canvas {
+            max-height: 400px;
+        }
+
         .table-container {
             background: white;
-            border-radius: 15px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-top: 20px;
         }
 
         .table-header {
             background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
             color: white;
-            padding: 25px 30px;
+            padding: 20px 25px;
         }
 
         .table-header h3 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: 0.5px;
         }
@@ -309,10 +374,10 @@
         }
 
         thead th {
-            padding: 18px 20px;
+            padding: 15px 18px;
             text-align: left;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             color: #475569;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -329,10 +394,25 @@
         }
 
         tbody td {
-            padding: 18px 20px;
-            font-size: 15px;
+            padding: 15px 18px;
+            font-size: 14px;
             color: #334155;
             font-weight: 500;
+        }
+
+        .date-cell {
+            font-family: 'Courier New', monospace;
+        }
+
+        .date-cell.weekend {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .date-cell.holiday {
+            color: #dc2626;
+            font-weight: 700;
+            background: #fef2f2;
         }
 
         .number {
@@ -352,7 +432,7 @@
 
         .loading {
             text-align: center;
-            padding: 60px;
+            padding: 50px;
             color: #64748b;
         }
 
@@ -372,9 +452,47 @@
 
         .no-data {
             text-align: center;
-            padding: 60px;
+            padding: 50px;
             color: #94a3b8;
             font-size: 16px;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* 新增淡入動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
@@ -382,7 +500,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 進階業績查詢系統</h1>
-            <p>iStore Taiwan | 全店業績分析平台</p>
+            <p>iStore Taiwan | 全店業績分析平台（改進版）</p>
         </div>
 
         <div class="filters-section">
@@ -413,8 +531,14 @@
                 <div class="filter-group">
                     <label>日期範圍</label>
                     <div class="date-range-group">
-                        <input type="date" id="startDate" placeholder="開始日期">
-                        <input type="date" id="endDate" placeholder="結束日期">
+                        <div class="date-input-wrapper">
+                            <input type="date" id="startDate" placeholder="開始日期">
+                            <div class="date-display" id="startDateDisplay">未選擇</div>
+                        </div>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="endDate" placeholder="結束日期">
+                            <div class="date-display" id="endDateDisplay">未選擇</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -423,8 +547,7 @@
             <div class="compare-section">
                 <div class="section-title">📈 區間比較分析</div>
                 
-                <!-- 店別選擇 -->
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 15px;">
                     <div class="filter-group" style="max-width: 400px;">
                         <label>比較店別（可選）</label>
                         <select id="compareStore">
@@ -440,6 +563,7 @@
                             <input type="date" id="baseStart" placeholder="開始日期">
                             <input type="date" id="baseEnd" placeholder="結束日期">
                         </div>
+                        <div class="date-display" id="baseDisplay" style="margin-top: 10px;">未選擇</div>
                     </div>
                     <div class="compare-period">
                         <h4>比較期間</h4>
@@ -447,25 +571,68 @@
                             <input type="date" id="compareStart" placeholder="開始日期">
                             <input type="date" id="compareEnd" placeholder="結束日期">
                         </div>
+                        <div class="date-display" id="compareDisplay" style="margin-top: 10px;">未選擇</div>
                     </div>
                 </div>
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="applyFilters()">套用篩選</button>
-                <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
-                <button class="btn btn-primary" onclick="compareIntervals()">區間對比</button>
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <span>🔍</span>
+                    <span>套用篩選</span>
+                </button>
+                <button class="btn btn-secondary" onclick="resetFilters()">
+                    <span>🔄</span>
+                    <span>重置</span>
+                </button>
+                <button class="btn btn-primary" onclick="compareIntervals()">
+                    <span>📊</span>
+                    <span>區間對比</span>
+                </button>
             </div>
         </div>
 
         <div class="results-section">
             <div id="statsContainer"></div>
+            <div id="chartsContainer"></div>
             <div id="tableContainer"></div>
         </div>
     </div>
 
     <script>
-        // 店別對照表 - 按照順序編號排列
+        // 台灣國定假日 2024-2025
+        const holidays = {
+            '2024-01-01': '元旦',
+            '2024-02-08': '小年夜',
+            '2024-02-09': '除夕',
+            '2024-02-10': '春節',
+            '2024-02-11': '春節',
+            '2024-02-12': '春節',
+            '2024-02-13': '春節',
+            '2024-02-14': '春節',
+            '2024-02-28': '和平紀念日',
+            '2024-04-04': '兒童節',
+            '2024-04-05': '清明節',
+            '2024-06-10': '端午節',
+            '2024-09-17': '中秋節',
+            '2024-10-10': '國慶日',
+            '2025-01-01': '元旦',
+            '2025-01-27': '小年夜',
+            '2025-01-28': '除夕',
+            '2025-01-29': '春節',
+            '2025-01-30': '春節',
+            '2025-01-31': '春節',
+            '2025-02-01': '春節',
+            '2025-02-02': '春節',
+            '2025-02-28': '和平紀念日',
+            '2025-04-03': '兒童節',
+            '2025-04-04': '清明節',
+            '2025-05-31': '端午節',
+            '2025-10-06': '中秋節',
+            '2025-10-10': '國慶日'
+        };
+
+        // 店別對照表
         const storeMapping = {
             'NK[i]store': { name: '南西', order: 45 },
             'TM[i]store': { name: '天母', order: 47 },
@@ -491,6 +658,92 @@
 
         let allData = [];
         let filteredData = [];
+        let charts = {};
+
+        // 取得星期幾
+        function getWeekday(dateString) {
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const date = new Date(dateString);
+            return weekdays[date.getDay()];
+        }
+
+        // 判斷是否為週末
+        function isWeekend(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+
+        // 判斷是否為假日
+        function isHoliday(dateString) {
+            return holidays.hasOwnProperty(dateString);
+        }
+
+        // 格式化日期顯示（含星期）
+        function formatDateWithWeekday(dateString) {
+            if (!dateString) return '未選擇';
+            const weekday = getWeekday(dateString);
+            const holiday = holidays[dateString];
+            const isSpecialDay = isWeekend(dateString) || holiday;
+            
+            let display = `${dateString} (${weekday})`;
+            if (holiday) {
+                display += ` [${holiday}]`;
+            }
+            
+            return { display, isSpecialDay, isHoliday: !!holiday };
+        }
+
+        // 更新日期顯示
+        function updateDateDisplay(inputId, displayId) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            
+            if (input.value) {
+                const formatted = formatDateWithWeekday(input.value);
+                display.textContent = formatted.display;
+                display.classList.remove('weekend', 'holiday');
+                
+                if (formatted.isHoliday) {
+                    display.classList.add('holiday');
+                } else if (formatted.isSpecialDay) {
+                    display.classList.add('weekend');
+                }
+            } else {
+                display.textContent = '未選擇';
+                display.classList.remove('weekend', 'holiday');
+            }
+        }
+
+        // 更新比較期間顯示
+        function updateCompareDisplay(startId, endId, displayId) {
+            const start = document.getElementById(startId).value;
+            const end = document.getElementById(endId).value;
+            const display = document.getElementById(displayId);
+            
+            if (start && end) {
+                const startFormatted = formatDateWithWeekday(start);
+                const endFormatted = formatDateWithWeekday(end);
+                display.innerHTML = `${startFormatted.display}<br>~<br>${endFormatted.display}`;
+                
+                if (startFormatted.isHoliday || endFormatted.isHoliday) {
+                    display.classList.add('holiday');
+                } else if (startFormatted.isSpecialDay || endFormatted.isSpecialDay) {
+                    display.classList.add('weekend');
+                } else {
+                    display.classList.remove('weekend', 'holiday');
+                }
+            } else if (start) {
+                const formatted = formatDateWithWeekday(start);
+                display.textContent = `開始：${formatted.display}`;
+            } else if (end) {
+                const formatted = formatDateWithWeekday(end);
+                display.textContent = `結束：${formatted.display}`;
+            } else {
+                display.textContent = '未選擇';
+                display.classList.remove('weekend', 'holiday');
+            }
+        }
 
         // 自動載入JSON資料
         async function loadJSON() {
@@ -504,7 +757,6 @@
                 
                 const data = await response.json();
                 
-                // 處理資料：將Excel代碼轉換為顯示名稱
                 allData = data.map(item => {
                     const storeInfo = Object.values(storeMapping).find(s => s.name === item.店別);
                     return {
@@ -518,11 +770,48 @@
                 console.log(`✅ 成功載入 ${allData.length.toLocaleString()} 筆資料`);
                 
                 initializeFilters();
+                setupDateListeners();
                 applyFilters();
                 
             } catch (error) {
                 alert(`❌ 載入資料失敗: ${error.message}\n\n請確認 data/salesData.json 檔案存在`);
                 console.error('載入JSON失敗:', error);
+            }
+        }
+
+        // 設定日期監聽器
+        function setupDateListeners() {
+            // 主要篩選的日期
+            document.getElementById('startDate').addEventListener('change', function() {
+                updateDateDisplay('startDate', 'startDateDisplay');
+            });
+            
+            document.getElementById('endDate').addEventListener('change', function() {
+                updateDateDisplay('endDate', 'endDateDisplay');
+            });
+
+            // 比較期間的日期
+            const baseStart = document.getElementById('baseStart');
+            const baseEnd = document.getElementById('baseEnd');
+            const compareStart = document.getElementById('compareStart');
+            const compareEnd = document.getElementById('compareEnd');
+
+            baseStart.addEventListener('change', () => updateCompareDisplay('baseStart', 'baseEnd', 'baseDisplay'));
+            baseEnd.addEventListener('change', () => updateCompareDisplay('baseStart', 'baseEnd', 'baseDisplay'));
+            compareStart.addEventListener('change', () => updateCompareDisplay('compareStart', 'compareEnd', 'compareDisplay'));
+            compareEnd.addEventListener('change', () => updateCompareDisplay('compareStart', 'compareEnd', 'compareDisplay'));
+
+            // 設定日期範圍
+            if (allData.length > 0) {
+                const dates = allData.map(d => d.完整日期).sort();
+                const minDate = dates[0];
+                const maxDate = dates[dates.length - 1];
+
+                [baseStart, baseEnd, compareStart, compareEnd, 
+                 document.getElementById('startDate'), document.getElementById('endDate')].forEach(input => {
+                    input.min = minDate;
+                    input.max = maxDate;
+                });
             }
         }
 
@@ -543,7 +832,7 @@
                 monthFilter.innerHTML += `<option value="${i}">${i}月</option>`;
             }
 
-            // 店別 - 按照順序編號排列
+            // 店別
             const stores = [...new Set(allData.map(d => d.店別))]
                 .map(store => {
                     const storeInfo = Object.values(storeMapping).find(s => s.name === store);
@@ -560,7 +849,6 @@
                 storeFilter.innerHTML += `<option value="${store.name}">${store.name}</option>`;
             });
 
-            // 比較店別選單（與店別篩選相同）
             const compareStoreFilter = document.getElementById('compareStore');
             compareStoreFilter.innerHTML = '<option value="">全部店別</option>';
             stores.forEach(store => {
@@ -601,6 +889,11 @@
             document.getElementById('compareEnd').value = '';
             document.getElementById('compareStore').value = '';
             
+            updateDateDisplay('startDate', 'startDateDisplay');
+            updateDateDisplay('endDate', 'endDateDisplay');
+            updateCompareDisplay('baseStart', 'baseEnd', 'baseDisplay');
+            updateCompareDisplay('compareStart', 'compareEnd', 'compareDisplay');
+            
             filteredData = [...allData];
             displayResults();
         }
@@ -609,56 +902,65 @@
         function displayResults() {
             if (filteredData.length === 0) {
                 document.getElementById('statsContainer').innerHTML = '';
+                document.getElementById('chartsContainer').innerHTML = '';
                 document.getElementById('tableContainer').innerHTML = '<div class="no-data">📭 無符合條件的資料</div>';
                 return;
             }
 
             // 計算統計數據
             const totalSales = filteredData.reduce((sum, item) => sum + item.業績, 0);
-            const uniqueStores = new Set(filteredData.map(d => d.店別)).size;
-            const avgSales = Math.round(totalSales / filteredData.length);
+            const uniqueStores = new Set(filteredData.map(d => d.店別));
+            const uniqueDates = new Set(filteredData.map(d => d.完整日期));
+            
+            // 每日平均 = 總業績 / (天數 * 店別數)
+            const avgPerDay = Math.round(totalSales / (uniqueDates.size * uniqueStores.size));
+            
             const maxSale = Math.max(...filteredData.map(d => d.業績));
             const maxSaleItem = filteredData.find(d => d.業績 === maxSale);
 
             // 顯示統計卡片
             document.getElementById('statsContainer').innerHTML = `
-                <div class="stats-grid">
+                <div class="stats-grid fade-in">
                     <div class="stat-card primary">
                         <div class="stat-label">總業績</div>
                         <div class="stat-value">NT$ ${totalSales.toLocaleString()}</div>
                         <div class="stat-detail">共 ${filteredData.length.toLocaleString()} 筆資料</div>
                     </div>
                     <div class="stat-card success">
-                        <div class="stat-label">平均業績</div>
-                        <div class="stat-value">NT$ ${avgSales.toLocaleString()}</div>
-                        <div class="stat-detail">每筆平均</div>
+                        <div class="stat-label">每日平均</div>
+                        <div class="stat-value">NT$ ${avgPerDay.toLocaleString()}</div>
+                        <div class="stat-detail">${uniqueDates.size} 天 × ${uniqueStores.size} 店</div>
                     </div>
                     <div class="stat-card warning">
                         <div class="stat-label">最高單日</div>
                         <div class="stat-value">NT$ ${maxSale.toLocaleString()}</div>
-                        <div class="stat-detail">${maxSaleItem.店別} - ${maxSaleItem.日期}</div>
+                        <div class="stat-detail">${maxSaleItem.店別} - ${maxSaleItem.完整日期}</div>
                     </div>
                     <div class="stat-card info">
                         <div class="stat-label">店別數量</div>
-                        <div class="stat-value">${uniqueStores}</div>
+                        <div class="stat-value">${uniqueStores.size}</div>
                         <div class="stat-detail">個店別</div>
                     </div>
                 </div>
             `;
 
-            // 按日期排序（由舊到新）
+            // 顯示圖表
+            displayCharts();
+
+            // 按日期排序
             const sortedData = [...filteredData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
 
-            // 顯示每日業績表格
+            // 顯示表格
             let tableHTML = `
-                <div class="table-container">
+                <div class="table-container fade-in">
                     <div class="table-header">
-                        <h3>每日業績明細</h3>
+                        <h3>📋 每日業績明細</h3>
                     </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>日期</th>
+                                <th>星期</th>
                                 <th>店別</th>
                                 <th class="number">業績</th>
                                 <th class="number">占比</th>
@@ -669,10 +971,15 @@
 
             sortedData.forEach((item) => {
                 const percentage = ((item.業績 / totalSales) * 100).toFixed(2);
+                const weekday = getWeekday(item.完整日期);
+                const holiday = holidays[item.完整日期];
+                const isSpecial = isWeekend(item.完整日期) || holiday;
+                const dateClass = holiday ? 'holiday' : (isSpecial ? 'weekend' : '');
                 
                 tableHTML += `
                     <tr>
-                        <td>${item.完整日期}</td>
+                        <td class="date-cell ${dateClass}">${item.完整日期}</td>
+                        <td class="date-cell ${dateClass}">${weekday}${holiday ? ' [' + holiday + ']' : ''}</td>
                         <td><strong>${item.店別}</strong></td>
                         <td class="number">NT$ ${item.業績.toLocaleString()}</td>
                         <td class="number">${percentage}%</td>
@@ -680,12 +987,11 @@
                 `;
             });
 
-            // 新增總計行
             tableHTML += `
                         </tbody>
                         <tfoot>
                             <tr style="background: #f8fafc; font-weight: 700; border-top: 3px solid #0f3460;">
-                                <td colspan="2" style="text-align: right; padding-right: 20px;">總計</td>
+                                <td colspan="3" style="text-align: right; padding-right: 20px;">總計</td>
                                 <td class="number" style="color: #0f3460; font-size: 16px;">NT$ ${totalSales.toLocaleString()}</td>
                                 <td class="number" style="color: #0f3460;">100.00%</td>
                             </tr>
@@ -695,6 +1001,260 @@
             `;
 
             document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+
+        // 顯示圖表
+        function displayCharts() {
+            // 清除舊圖表
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            const chartsContainer = document.getElementById('chartsContainer');
+            chartsContainer.innerHTML = `
+                <div class="charts-section fade-in">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <span>📈</span>
+                            <span>每日業績趨勢</span>
+                        </div>
+                        <canvas id="dailyTrendChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <span>🏪</span>
+                            <span>店別業績排名</span>
+                        </div>
+                        <canvas id="storeRankingChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <span>📊</span>
+                            <span>業績分布（圓餅圖）</span>
+                        </div>
+                        <canvas id="distributionChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            `;
+
+            createDailyTrendChart();
+            createStoreRankingChart();
+            createDistributionChart();
+        }
+
+        // 每日趨勢圖
+        function createDailyTrendChart() {
+            const ctx = document.getElementById('dailyTrendChart');
+            
+            const dailyData = {};
+            filteredData.forEach(record => {
+                const date = record.完整日期;
+                if (!dailyData[date]) {
+                    dailyData[date] = 0;
+                }
+                dailyData[date] += record.業績;
+            });
+            
+            const sortedDates = Object.keys(dailyData).sort();
+            const values = sortedDates.map(date => dailyData[date]);
+            
+            charts.dailyTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.map(date => {
+                        const d = new Date(date);
+                        const weekday = getWeekday(date);
+                        return `${d.getMonth() + 1}/${d.getDate()} (${weekday})`;
+                    }),
+                    datasets: [{
+                        label: '每日總業績',
+                        data: values,
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: sortedDates.map(date => {
+                            if (isHoliday(date)) return '#dc2626';
+                            if (isWeekend(date)) return '#f87171';
+                            return '#0ea5e9';
+                        }),
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const date = sortedDates[context.dataIndex];
+                                    const weekday = getWeekday(date);
+                                    const holiday = holidays[date];
+                                    return [
+                                        `日期: ${date} (${weekday})${holiday ? ' [' + holiday + ']' : ''}`,
+                                        `業績: ${context.parsed.y.toLocaleString()} 元`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 店別排名圖
+        function createStoreRankingChart() {
+            const ctx = document.getElementById('storeRankingChart');
+            
+            const storeData = {};
+            filteredData.forEach(record => {
+                const store = record.店別;
+                if (!storeData[store]) {
+                    storeData[store] = 0;
+                }
+                storeData[store] += record.業績;
+            });
+            
+            const stores = Object.keys(storeData).sort((a, b) => storeData[b] - storeData[a]);
+            const values = stores.map(store => storeData[store]);
+            
+            const colors = stores.map((_, i) => {
+                const hue = (i * 360 / stores.length);
+                return `hsla(${hue}, 70%, 60%, 0.8)`;
+            });
+            
+            charts.storeRanking = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: stores,
+                    datasets: [{
+                        label: '總業績',
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = values.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed.x / total) * 100).toFixed(1);
+                                    return [
+                                        `業績: ${context.parsed.x.toLocaleString()} 元`,
+                                        `佔比: ${percentage}%`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(0) + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 分布圓餅圖
+        function createDistributionChart() {
+            const ctx = document.getElementById('distributionChart');
+            
+            const storeData = {};
+            filteredData.forEach(record => {
+                const store = record.店別;
+                if (!storeData[store]) {
+                    storeData[store] = 0;
+                }
+                storeData[store] += record.業績;
+            });
+            
+            const stores = Object.keys(storeData).sort((a, b) => storeData[b] - storeData[a]);
+            const values = stores.map(store => storeData[store]);
+            
+            charts.distribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: stores,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e',
+                            '#f59e0b', '#eab308', '#84cc16', '#22c55e',
+                            '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+                            '#6366f1', '#a855f7', '#d946ef', '#f472b6',
+                            '#fb923c', '#fbbf24', '#a3e635', '#4ade80'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = values.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return [
+                                        `${context.label}`,
+                                        `業績: ${context.parsed.toLocaleString()} 元`,
+                                        `佔比: ${percentage}%`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         // 區間比較功能
@@ -710,17 +1270,14 @@
                 return;
             }
 
-            // 基準期間資料
             let baseData = allData.filter(item => 
                 item.完整日期 >= baseStart && item.完整日期 <= baseEnd
             );
 
-            // 比較期間資料
             let compareData = allData.filter(item => 
                 item.完整日期 >= compareStart && item.完整日期 <= compareEnd
             );
 
-            // 如果選擇了特定店別，則進一步篩選
             if (compareStore) {
                 baseData = baseData.filter(item => item.店別 === compareStore);
                 compareData = compareData.filter(item => item.店別 === compareStore);
@@ -731,31 +1288,27 @@
                 return;
             }
 
-            // 計算統計
             const baseTotalSales = baseData.reduce((sum, item) => sum + item.業績, 0);
             const compareTotalSales = compareData.reduce((sum, item) => sum + item.業績, 0);
             const growthRate = ((compareTotalSales - baseTotalSales) / baseTotalSales * 100).toFixed(2);
 
-            // 如果選擇了特定店別，顯示該店別的每日明細
             if (compareStore) {
                 displaySingleStoreComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, compareStore, baseTotalSales, compareTotalSales, growthRate);
             } else {
-                // 顯示所有店別的比較
                 displayAllStoresComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, baseTotalSales, compareTotalSales, growthRate);
             }
         }
 
-        // 顯示單一店別的比較（每日明細）
+        // 顯示單一店別比較
         function displaySingleStoreComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, storeName, baseTotalSales, compareTotalSales, growthRate) {
             const diff = compareTotalSales - baseTotalSales;
             const growthClass = parseFloat(growthRate) >= 0 ? 'positive' : 'negative';
 
-            // 按日期排序
             const baseSorted = [...baseData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
             const compareSorted = [...compareData].sort((a, b) => a.完整日期.localeCompare(b.完整日期));
 
             let compareHTML = `
-                <div class="stats-grid">
+                <div class="stats-grid fade-in">
                     <div class="stat-card primary">
                         <div class="stat-label">店別</div>
                         <div class="stat-value">${storeName}</div>
@@ -777,20 +1330,22 @@
                         <div class="stat-detail ${growthClass}">差額: NT$ ${diff.toLocaleString()}</div>
                     </div>
                 </div>
-                <div class="table-container" style="margin-top: 30px;">
+                <div class="table-container fade-in" style="margin-top: 30px;">
                     <div class="table-header">
                         <h3>${storeName} - 每日業績比較</h3>
                     </div>
                     <table>
                         <thead>
                             <tr>
-                                <th colspan="2" style="text-align: center; background: #e0f2fe;">基準期間</th>
-                                <th colspan="2" style="text-align: center; background: #dbeafe;">比較期間</th>
+                                <th colspan="3" style="text-align: center; background: #e0f2fe;">基準期間</th>
+                                <th colspan="3" style="text-align: center; background: #dbeafe;">比較期間</th>
                             </tr>
                             <tr>
                                 <th>日期</th>
+                                <th>星期</th>
                                 <th class="number">業績</th>
                                 <th>日期</th>
+                                <th>星期</th>
                                 <th class="number">業績</th>
                             </tr>
                         </thead>
@@ -802,11 +1357,19 @@
                 const baseItem = baseSorted[i];
                 const compareItem = compareSorted[i];
                 
+                const baseWeekday = baseItem ? getWeekday(baseItem.完整日期) : '';
+                const compareWeekday = compareItem ? getWeekday(compareItem.完整日期) : '';
+                
+                const baseClass = baseItem && (isHoliday(baseItem.完整日期) || isWeekend(baseItem.完整日期)) ? 'weekend' : '';
+                const compareClass = compareItem && (isHoliday(compareItem.完整日期) || isWeekend(compareItem.完整日期)) ? 'weekend' : '';
+                
                 compareHTML += `
                     <tr>
-                        <td>${baseItem ? baseItem.完整日期 : '-'}</td>
+                        <td class="date-cell ${baseClass}">${baseItem ? baseItem.完整日期 : '-'}</td>
+                        <td class="date-cell ${baseClass}">${baseWeekday}</td>
                         <td class="number">${baseItem ? 'NT$ ' + baseItem.業績.toLocaleString() : '-'}</td>
-                        <td>${compareItem ? compareItem.完整日期 : '-'}</td>
+                        <td class="date-cell ${compareClass}">${compareItem ? compareItem.完整日期 : '-'}</td>
+                        <td class="date-cell ${compareClass}">${compareWeekday}</td>
                         <td class="number">${compareItem ? 'NT$ ' + compareItem.業績.toLocaleString() : '-'}</td>
                     </tr>
                 `;
@@ -819,12 +1382,12 @@
             `;
 
             document.getElementById('statsContainer').innerHTML = compareHTML;
+            document.getElementById('chartsContainer').innerHTML = '';
             document.getElementById('tableContainer').innerHTML = '';
         }
 
-        // 顯示所有店別的比較
+        // 顯示所有店別比較
         function displayAllStoresComparison(baseData, compareData, baseStart, baseEnd, compareStart, compareEnd, baseTotalSales, compareTotalSales, growthRate) {
-            // 按店別比較
             const baseStoreStats = {};
             const compareStoreStats = {};
 
@@ -838,7 +1401,6 @@
                 compareStoreStats[item.店別] += item.業績;
             });
 
-            // 建立比較表格
             const allStores = [...new Set([...Object.keys(baseStoreStats), ...Object.keys(compareStoreStats)])];
             const comparisonData = allStores.map(store => {
                 const baseValue = baseStoreStats[store] || 0;
@@ -855,9 +1417,8 @@
                 };
             }).sort((a, b) => b.growth - a.growth);
 
-            // 顯示比較結果
             let compareHTML = `
-                <div class="stats-grid">
+                <div class="stats-grid fade-in">
                     <div class="stat-card primary">
                         <div class="stat-label">基準期間</div>
                         <div class="stat-value">NT$ ${baseTotalSales.toLocaleString()}</div>
@@ -879,7 +1440,7 @@
                         <div class="stat-detail">個店別</div>
                     </div>
                 </div>
-                <div class="table-container" style="margin-top: 30px;">
+                <div class="table-container fade-in" style="margin-top: 30px;">
                     <div class="table-header">
                         <h3>店別成長率比較</h3>
                     </div>
@@ -918,6 +1479,7 @@
             `;
 
             document.getElementById('statsContainer').innerHTML = compareHTML;
+            document.getElementById('chartsContainer').innerHTML = '';
             document.getElementById('tableContainer').innerHTML = '';
         }
 
