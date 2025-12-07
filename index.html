@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全台業績查詢系統 - iStore </title>
+    <title>進階業績查詢系統 - iStore Taiwan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -457,31 +457,478 @@
             font-size: 16px;
         }
 
-        /* 響應式設計 */
+        /* 滾動提示預設隱藏 */
+        .scroll-hint {
+            display: none;
+        }
+
+        /* 響應式設計 - iPhone & iPad 優化 */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
             .header h1 {
-                font-size: 28px;
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .header p {
+                font-size: 14px;
+            }
+
+            .filters-section {
+                padding: 20px 15px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 15px;
             }
 
             .filters-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .filter-group {
+                padding: 18px;
+            }
+
+            .filter-group label {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                padding: 14px 12px;
+                font-size: 16px; /* 避免 iOS 自動縮放 */
+            }
+
+            .date-range-group {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .date-display {
+                font-size: 13px;
+                padding: 12px;
+                min-height: 42px;
+            }
+
+            .compare-section {
+                padding: 20px 15px;
+                margin-bottom: 20px;
             }
 
             .compare-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
-            .stats-grid {
+            .compare-period {
+                padding: 18px;
+            }
+
+            .compare-period h4 {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+
+            .compare-inputs {
                 grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .compare-inputs input {
+                padding: 14px 12px;
+                font-size: 16px; /* 避免 iOS 自動縮放 */
             }
 
             .action-buttons {
                 flex-direction: column;
+                gap: 10px;
             }
 
             .btn {
                 width: 100%;
                 justify-content: center;
+                padding: 16px 24px;
+                font-size: 15px;
+                min-height: 52px;
+            }
+
+            .results-section {
+                padding: 20px 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .stat-detail {
+                font-size: 11px;
+            }
+
+            .charts-section {
+                margin: 20px 0;
+            }
+
+            .chart-container {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .chart-title {
+                font-size: 15px;
+                margin-bottom: 15px;
+            }
+
+            .chart-canvas {
+                max-height: 280px;
+            }
+
+            .table-container {
+                border-radius: 12px;
+                margin-top: 15px;
+            }
+
+            .table-header {
+                padding: 18px 15px;
+            }
+
+            .table-header h3 {
+                font-size: 16px;
+            }
+
+            /* 表格捲動容器 */
+            .table-scroll-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 #f1f5f9;
+            }
+
+            .table-scroll-wrapper::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .table-scroll-wrapper::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 4px;
+            }
+
+            .table-scroll-wrapper::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+            }
+
+            .table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 13px;
+            }
+
+            thead th {
+                padding: 12px 10px;
+                font-size: 11px;
+                white-space: nowrap;
+                position: sticky;
+                top: 0;
+                background: #f8fafc;
+                z-index: 10;
+            }
+
+            tbody td {
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+
+            .date-cell {
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .number {
+                white-space: nowrap;
+            }
+
+            /* 滾動提示 */
+            .scroll-hint {
+                display: block;
+                text-align: center;
+                padding: 10px;
+                background: #f8fafc;
+                color: #64748b;
+                font-size: 12px;
+                border-top: 1px solid #e2e8f0;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .no-data {
+                padding: 40px 20px;
+                font-size: 15px;
+            }
+        }
+
+        /* iPad 優化 (768px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .header p {
+                font-size: 15px;
+            }
+
+            .filters-section {
+                padding: 30px;
+            }
+
+            .filters-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .compare-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .chart-canvas {
+                max-height: 350px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            thead th {
+                padding: 14px 15px;
+                font-size: 12px;
+            }
+
+            tbody td {
+                padding: 14px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* iPhone SE / 小螢幕 (max-width: 375px) */
+        @media (max-width: 375px) {
+            body {
+                padding: 8px;
+            }
+
+            .header {
+                padding: 25px 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .filters-section,
+            .results-section {
+                padding: 15px 12px;
+            }
+
+            .filter-group {
+                padding: 15px;
+            }
+
+            .stat-card {
+                padding: 18px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .btn {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+
+            .chart-container {
+                padding: 12px;
+            }
+
+            .chart-canvas {
+                max-height: 240px;
+            }
+
+            table {
+                min-width: 500px;
+                font-size: 12px;
+            }
+
+            thead th {
+                padding: 10px 8px;
+                font-size: 10px;
+            }
+
+            tbody td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+        }
+
+        /* 橫向模式優化 */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header p {
+                font-size: 13px;
+            }
+
+            .filters-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .compare-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .chart-canvas {
+                max-height: 220px;
+            }
+        }
+
+        /* 觸控優化 */
+        @media (hover: none) and (pointer: coarse) {
+            /* 增加可觸控區域 */
+            .btn {
+                min-height: 52px;
+            }
+
+            select,
+            input[type="date"] {
+                min-height: 52px;
+                font-size: 16px; /* 防止 iOS 縮放 */
+            }
+
+            /* 移除 hover 效果，使用 active 代替 */
+            .filter-group:hover {
+                transform: none;
+                box-shadow: 0 2px 12px rgba(15, 52, 96, 0.08);
+            }
+
+            .filter-group:active {
+                transform: scale(0.98);
+                transition: transform 0.1s;
+            }
+
+            .btn-primary:hover {
+                transform: none;
+                box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            }
+
+            .btn-primary:active {
+                transform: scale(0.97);
+                transition: transform 0.1s;
+            }
+
+            .stat-card:hover {
+                transform: none;
+            }
+
+            .stat-card:active {
+                transform: scale(0.98);
+                transition: transform 0.1s;
+            }
+
+            tbody tr:hover {
+                background: transparent;
+            }
+
+            tbody tr:active {
+                background: #f8fafc;
+            }
+
+            /* 改善點擊反饋 */
+            button:active {
+                opacity: 0.8;
+            }
+        }
+
+        /* iOS Safari 特定優化 */
+        @supports (-webkit-touch-callout: none) {
+            /* 修復 iOS 輸入框樣式 */
+            input[type="date"] {
+                -webkit-appearance: none;
+                appearance: none;
+                min-height: 52px;
+            }
+
+            select {
+                -webkit-appearance: none;
+                appearance: none;
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f3460' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                background-size: 20px;
+                padding-right: 40px;
+            }
+
+            /* 防止雙擊縮放 */
+            * {
+                touch-action: manipulation;
+            }
+
+            /* 平滑滾動 */
+            .table-scroll-wrapper {
+                -webkit-overflow-scrolling: touch;
             }
         }
 
@@ -499,7 +946,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 業績查詢系統</h1>
+            <h1>📊 進階業績查詢系統</h1>
             <p>iStore | 全店業績分析平台</p>
         </div>
 
@@ -956,17 +1403,18 @@
                     <div class="table-header">
                         <h3>📋 每日業績明細</h3>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>星期</th>
-                                <th>店別</th>
-                                <th class="number">業績</th>
-                                <th class="number">占比</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="table-scroll-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>星期</th>
+                                    <th>店別</th>
+                                    <th class="number">業績</th>
+                                    <th class="number">占比</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             sortedData.forEach((item) => {
@@ -988,15 +1436,17 @@
             });
 
             tableHTML += `
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f8fafc; font-weight: 700; border-top: 3px solid #0f3460;">
-                                <td colspan="3" style="text-align: right; padding-right: 20px;">總計</td>
-                                <td class="number" style="color: #0f3460; font-size: 16px;">NT$ ${totalSales.toLocaleString()}</td>
-                                <td class="number" style="color: #0f3460;">100.00%</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8fafc; font-weight: 700; border-top: 3px solid #0f3460;">
+                                    <td colspan="3" style="text-align: right; padding-right: 20px;">總計</td>
+                                    <td class="number" style="color: #0f3460; font-size: 16px;">NT$ ${totalSales.toLocaleString()}</td>
+                                    <td class="number" style="color: #0f3460;">100.00%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="scroll-hint">← 左右滑動查看更多 →</div>
                 </div>
             `;
 
@@ -1470,22 +1920,23 @@
                     <div class="table-header">
                         <h3>${storeName} - 每日業績明細比較</h3>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th colspan="3" style="text-align: center; background: #e0f2fe;">基準期間</th>
-                                <th colspan="3" style="text-align: center; background: #dbeafe;">比較期間</th>
-                            </tr>
-                            <tr>
-                                <th>日期</th>
-                                <th>星期</th>
-                                <th class="number">業績</th>
-                                <th>日期</th>
-                                <th>星期</th>
-                                <th class="number">業績</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="table-scroll-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th colspan="3" style="text-align: center; background: #e0f2fe;">基準期間</th>
+                                    <th colspan="3" style="text-align: center; background: #dbeafe;">比較期間</th>
+                                </tr>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>星期</th>
+                                    <th class="number">業績</th>
+                                    <th>日期</th>
+                                    <th>星期</th>
+                                    <th class="number">業績</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             const maxLength = Math.max(baseSorted.length, compareSorted.length);
@@ -1512,8 +1963,10 @@
             }
 
             tableHTML += `
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="scroll-hint">← 左右滑動查看更多 →</div>
                 </div>
             `;
 
@@ -1578,17 +2031,18 @@
                     <div class="table-header">
                         <h3>店別成長率比較</h3>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>店別</th>
-                                <th class="number">基準期間</th>
-                                <th class="number">比較期間</th>
-                                <th class="number">成長金額</th>
-                                <th class="number">成長率</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="table-scroll-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>店別</th>
+                                    <th class="number">基準期間</th>
+                                    <th class="number">比較期間</th>
+                                    <th class="number">成長金額</th>
+                                    <th class="number">成長率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             comparisonData.forEach(item => {
@@ -1607,8 +2061,10 @@
             });
 
             compareHTML += `
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="scroll-hint">← 左右滑動查看更多 →</div>
                 </div>
             `;
 
