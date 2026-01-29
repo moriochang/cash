@@ -1372,17 +1372,17 @@
                 <div class="stats-grid fade-in">
                     <div class="stat-card primary">
                         <div class="stat-label">總業績</div>
-                        <div class="stat-value">NT$ ${totalSales.toLocaleString()}</div>
+                        <div class="stat-value">${totalSales.toLocaleString()}</div>
                         <div class="stat-detail">共 ${filteredData.length.toLocaleString()} 筆資料</div>
                     </div>
                     <div class="stat-card success">
                         <div class="stat-label">每日平均</div>
-                        <div class="stat-value">NT$ ${avgPerDay.toLocaleString()}</div>
+                        <div class="stat-value">${avgPerDay.toLocaleString()}</div>
                         <div class="stat-detail">${uniqueDates.size} 天 × ${uniqueStores.size} 店</div>
                     </div>
                     <div class="stat-card warning">
                         <div class="stat-label">最高單日</div>
-                        <div class="stat-value">NT$ ${maxSale.toLocaleString()}</div>
+                        <div class="stat-value">${maxSale.toLocaleString()}</div>
                         <div class="stat-detail">${maxSaleItem.店別} - ${maxSaleItem.完整日期}</div>
                     </div>
                     <div class="stat-card info">
@@ -1431,7 +1431,7 @@
                         <td class="date-cell ${dateClass}">${item.完整日期}</td>
                         <td class="date-cell ${dateClass}">${weekday}${holiday ? ' [' + holiday + ']' : ''}</td>
                         <td><strong>${item.店別}</strong></td>
-                        <td class="number">NT$ ${item.業績.toLocaleString()}</td>
+                        <td class="number">${item.業績.toLocaleString()}</td>
                         <td class="number">${percentage}%</td>
                     </tr>
                 `;
@@ -1442,7 +1442,7 @@
                             <tfoot>
                                 <tr style="background: #f8fafc; font-weight: 700; border-top: 3px solid #0f3460;">
                                     <td colspan="3" style="text-align: right; padding-right: 20px;">總計</td>
-                                    <td class="number" style="color: #0f3460; font-size: 16px;">NT$ ${totalSales.toLocaleString()}</td>
+                                    <td class="number" style="color: #0f3460; font-size: 16px;">${totalSales.toLocaleString()}</td>
                                     <td class="number" style="color: #0f3460;">100.00%</td>
                                 </tr>
                             </tfoot>
@@ -1772,7 +1772,7 @@
                                     
                                     return [
                                         `${label}: ${date} (${weekday})${holiday ? ' [' + holiday + ']' : ''}`,
-                                        `業績: NT$ ${context.parsed.y.toLocaleString()}`
+                                        `業績: ${context.parsed.y.toLocaleString()}`
                                     ];
                                 },
                                 afterLabel: function(context) {
@@ -1795,7 +1795,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'NT$ ' + (value / 1000000).toFixed(1) + 'M';
+                                    return (value / 1000000).toFixed(1) + 'M';
                                 },
                                 font: {
                                     size: 12
@@ -1883,18 +1883,23 @@
                     </div>
                     <div class="stat-card info">
                         <div class="stat-label">基準期間</div>
-                        <div class="stat-value">NT$ ${baseTotalSales.toLocaleString()}</div>
+                        <div class="stat-value">${baseTotalSales.toLocaleString()}</div>
                         <div class="stat-detail">${baseStart} ~ ${baseEnd} (${baseData.length}天)</div>
                     </div>
                     <div class="stat-card info">
                         <div class="stat-label">比較期間</div>
-                        <div class="stat-value">NT$ ${compareTotalSales.toLocaleString()}</div>
+                        <div class="stat-value">${compareTotalSales.toLocaleString()}</div>
                         <div class="stat-detail">${compareStart} ~ ${compareEnd} (${compareData.length}天)</div>
                     </div>
                     <div class="stat-card ${parseFloat(growthRate) >= 0 ? 'success' : 'warning'}">
+                        <div class="stat-label">成長金額</div>
+                        <div class="stat-value ${growthClass}">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</div>
+                        <div class="stat-detail">比較期間 - 基準期間</div>
+                    </div>
+                    <div class="stat-card ${parseFloat(growthRate) >= 0 ? 'success' : 'warning'}">
                         <div class="stat-label">成長率</div>
-                        <div class="stat-value ${growthClass}">${growthRate}%</div>
-                        <div class="stat-detail ${growthClass}">差額: NT$ ${diff.toLocaleString()}</div>
+                        <div class="stat-value ${growthClass}">${growthRate >= 0 ? '+' : ''}${growthRate}%</div>
+                        <div class="stat-detail">業績成長幅度</div>
                     </div>
                 </div>
             `;
@@ -1956,10 +1961,10 @@
                     <tr>
                         <td class="date-cell ${baseClass}">${baseItem ? baseItem.完整日期 : '-'}</td>
                         <td class="date-cell ${baseClass}">${baseWeekday}</td>
-                        <td class="number">${baseItem ? 'NT$ ' + baseItem.業績.toLocaleString() : '-'}</td>
+                        <td class="number">${baseItem ? baseItem.業績.toLocaleString() : '-'}</td>
                         <td class="date-cell ${compareClass}">${compareItem ? compareItem.完整日期 : '-'}</td>
                         <td class="date-cell ${compareClass}">${compareWeekday}</td>
-                        <td class="number">${compareItem ? 'NT$ ' + compareItem.業績.toLocaleString() : '-'}</td>
+                        <td class="number">${compareItem ? compareItem.業績.toLocaleString() : '-'}</td>
                     </tr>
                 `;
             }
@@ -2010,18 +2015,23 @@
                 <div class="stats-grid fade-in">
                     <div class="stat-card primary">
                         <div class="stat-label">基準期間</div>
-                        <div class="stat-value">NT$ ${baseTotalSales.toLocaleString()}</div>
+                        <div class="stat-value">${baseTotalSales.toLocaleString()}</div>
                         <div class="stat-detail">${baseStart} ~ ${baseEnd}</div>
                     </div>
                     <div class="stat-card info">
                         <div class="stat-label">比較期間</div>
-                        <div class="stat-value">NT$ ${compareTotalSales.toLocaleString()}</div>
+                        <div class="stat-value">${compareTotalSales.toLocaleString()}</div>
                         <div class="stat-detail">${compareStart} ~ ${compareEnd}</div>
                     </div>
                     <div class="stat-card ${parseFloat(growthRate) >= 0 ? 'success' : 'warning'}">
+                        <div class="stat-label">成長金額</div>
+                        <div class="stat-value ${parseFloat(growthRate) >= 0 ? 'positive' : 'negative'}">${(compareTotalSales - baseTotalSales) >= 0 ? '+' : ''}${(compareTotalSales - baseTotalSales).toLocaleString()}</div>
+                        <div class="stat-detail">比較期間 - 基準期間</div>
+                    </div>
+                    <div class="stat-card ${parseFloat(growthRate) >= 0 ? 'success' : 'warning'}">
                         <div class="stat-label">成長率</div>
-                        <div class="stat-value ${parseFloat(growthRate) >= 0 ? 'positive' : 'negative'}">${growthRate}%</div>
-                        <div class="stat-detail">總業績變化</div>
+                        <div class="stat-value ${parseFloat(growthRate) >= 0 ? 'positive' : 'negative'}">${parseFloat(growthRate) >= 0 ? '+' : ''}${growthRate}%</div>
+                        <div class="stat-detail">總業績成長幅度</div>
                     </div>
                     <div class="stat-card info">
                         <div class="stat-label">店別數</div>
@@ -2054,10 +2064,10 @@
                 compareHTML += `
                     <tr>
                         <td><strong>${item.store}</strong></td>
-                        <td class="number">NT$ ${item.baseValue.toLocaleString()}</td>
-                        <td class="number">NT$ ${item.compareValue.toLocaleString()}</td>
-                        <td class="number ${growthClass}">NT$ ${diff.toLocaleString()}</td>
-                        <td class="number ${growthClass}">${item.growth}%</td>
+                        <td class="number">${item.baseValue.toLocaleString()}</td>
+                        <td class="number">${item.compareValue.toLocaleString()}</td>
+                        <td class="number ${growthClass}">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
+                        <td class="number ${growthClass}">${item.growth >= 0 ? '+' : ''}${item.growth}%</td>
                     </tr>
                 `;
             });
