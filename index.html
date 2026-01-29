@@ -1933,6 +1933,7 @@
                                 <tr>
                                     <th colspan="3" style="text-align: center; background: #e0f2fe;">基準期間</th>
                                     <th colspan="3" style="text-align: center; background: #dbeafe;">比較期間</th>
+                                    <th colspan="2" style="text-align: center; background: #f0fdf4;">成長分析</th>
                                 </tr>
                                 <tr>
                                     <th>日期</th>
@@ -1941,6 +1942,8 @@
                                     <th>日期</th>
                                     <th>星期</th>
                                     <th class="number">業績</th>
+                                    <th class="number">成長金額</th>
+                                    <th class="number">成長率</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1957,6 +1960,19 @@
                 const baseClass = baseItem && (isHoliday(baseItem.完整日期) || isWeekend(baseItem.完整日期)) ? 'weekend' : '';
                 const compareClass = compareItem && (isHoliday(compareItem.完整日期) || isWeekend(compareItem.完整日期)) ? 'weekend' : '';
                 
+                // 計算成長金額和成長率
+                let growthAmount = '-';
+                let growthRate = '-';
+                let growthClass = '';
+                
+                if (baseItem && compareItem) {
+                    const diff = compareItem.業績 - baseItem.業績;
+                    const rate = ((diff / baseItem.業績) * 100).toFixed(1);
+                    growthAmount = (diff >= 0 ? '+' : '') + diff.toLocaleString();
+                    growthRate = (parseFloat(rate) >= 0 ? '+' : '') + rate + '%';
+                    growthClass = parseFloat(rate) >= 0 ? 'positive' : 'negative';
+                }
+                
                 tableHTML += `
                     <tr>
                         <td class="date-cell ${baseClass}">${baseItem ? baseItem.完整日期 : '-'}</td>
@@ -1965,6 +1981,8 @@
                         <td class="date-cell ${compareClass}">${compareItem ? compareItem.完整日期 : '-'}</td>
                         <td class="date-cell ${compareClass}">${compareWeekday}</td>
                         <td class="number">${compareItem ? compareItem.業績.toLocaleString() : '-'}</td>
+                        <td class="number ${growthClass}">${growthAmount}</td>
+                        <td class="number ${growthClass}">${growthRate}</td>
                     </tr>
                 `;
             }
